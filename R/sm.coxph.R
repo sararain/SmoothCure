@@ -5,19 +5,19 @@
 ################################################################################
 
 library(dplyr)
-sm.coxph <- function(formula, data){
+sm.coxph <- function(formula, data = NULL){
 
   # Sort Data
-  mf <- model.frame(formula, data)
+  mf <- model.frame(formula = formula, data = data)
   time <- model.response(mf)[,1]
   data = data[order(time),]
 
-  XZ <- model.matrix(formula, data = data)
+  XZ <- model.matrix(object = formula, data = data)
   XZ <- XZ[,colnames(XZ) %>% setdiff(.,"(Intercept)")]
 
   pen.terms <- regexpr("ridge", colnames(XZ)) == 1
-  Z <- XZ[, colnames(XZ)[pen.terms]]
-  X <- XZ[, colnames(XZ)[!pen.terms]]
+  Z <- XZ[, colnames(XZ)[pen.terms]] %>% as.matrix
+  X <- XZ[, colnames(XZ)[!pen.terms]] %>% as.matrix
 
   if(length(colnames(XZ)[!pen.terms]) > 0){
     fix.terms.str <- paste0(' + ', paste0(colnames(XZ)[!pen.terms], collapse = ' + '))
@@ -40,7 +40,7 @@ sm.coxph <- function(formula, data){
   Ik <- diag(rep(1,q))
 
   ##### Initial Value #####
-  fit <- coxph(formula, data)
+  fit <- coxph(formula, data = data)
   b = summary(fit)$coefficient[,1]
   beta = b[names(b)[!pen.terms]]
   b = b[names(b)[pen.terms]]
