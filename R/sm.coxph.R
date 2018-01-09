@@ -42,9 +42,11 @@ sm.coxph <- function(formula, data = NULL){
   ##### Initial Value #####
   fit <- coxph(formula, data = data)
   b = summary(fit)$coefficient[,1]
-  beta = b[names(b)[!pen.terms]]
-  b = b[names(b)[pen.terms]]
-  hazard <- basehaz(fit, centered=FALSE)$hazard
+  beta = b[names(b)[!pen.terms]] %>% as.matrix
+  b = b[names(b)[pen.terms]] %>% as.matrix
+
+  unique.time.index <- cumsum(c(TRUE, diff(data$time) != 0))
+  hazard <- basehaz(fit, centered=FALSE)$hazard[unique.time.index] %>% as.matrix
 
   old_sigma = sigma = 10
   error = 1
@@ -63,9 +65,9 @@ sm.coxph <- function(formula, data = NULL){
     )
     surv.fit <- coxph(surv_formula, data = data)
     b = summary(surv.fit)$coefficient[,1]
-    beta = b[names(b)[!pen.terms]]
-    b = b[names(b)[pen.terms]]
-    hazard <- basehaz(surv.fit, centered=FALSE)$hazard
+    beta = b[names(b)[!pen.terms]] %>% as.matrix
+    b = b[names(b)[pen.terms]] %>% as.matrix
+    hazard <- basehaz(surv.fit, centered=FALSE)$hazard[unique.time.index] %>% as.matrix
     error = abs(sigma - old_sigma)
     old_sigma = sigma
     n = n + 1
@@ -73,7 +75,7 @@ sm.coxph <- function(formula, data = NULL){
       break
     }
   }
-  return(c(sigma, 0, beta))
+  return(list(sigma = sigma, beta = beta, surv.fit = surv.fit))
 }
 
 
