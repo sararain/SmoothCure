@@ -6,8 +6,8 @@
 
 library(dplyr)
 sm.coxph <- function(formula, data = NULL){
-
   # Sort Data
+
   mf <- model.frame(formula = formula, data = data)
   time <- model.response(mf)[,1]
   data = data[order(time),]
@@ -40,7 +40,7 @@ sm.coxph <- function(formula, data = NULL){
   Ik <- diag(rep(1,q))
 
   ##### Initial Value #####
-  fit <- coxph(formula, data = data)
+  fit <- coxph(formula, data = data, model = TRUE)
   b = summary(fit)$coefficient[,1]
   beta = b[names(b)[!pen.terms]] %>% as.matrix
   b = b[names(b)[pen.terms]] %>% as.matrix
@@ -63,7 +63,7 @@ sm.coxph <- function(formula, data = NULL){
              1/sigma,')',
              fix.terms.str)
     )
-    surv.fit <- coxph(surv_formula, data = data)
+    surv.fit <- coxph(surv_formula, data = data, model = TRUE)
     b = summary(surv.fit)$coefficient[,1]
     beta = b[names(b)[!pen.terms]] %>% as.matrix
     b = b[names(b)[pen.terms]] %>% as.matrix
